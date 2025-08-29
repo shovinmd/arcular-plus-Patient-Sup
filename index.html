@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcular+ Patient Supervisor Dashboard</title>
+    <link rel="stylesheet" href="patient_supervisor_styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../ARCstaff/logo1.png">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state">
+        <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+        </div>
+        <p>Loading your patient supervisor dashboard...</p>
+        <div class="loading-progress">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboardContent" class="dashboard-container" style="display: none;">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <img src="../ARCstaff/logo1.png" alt="Arcular+ Logo" class="logo">
+                <div class="header-title">
+                    <h1>Patient Supervisor Dashboard</h1>
+                    <p class="subtitle">Patient Helpdesk & Issue Resolution</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-headset"></i>
+                    </div>
+                    <div class="user-details">
+                        <span id="userName" class="user-name">Patient Supervisor</span>
+                        <span id="userEmail" class="user-email">supervisor@arcular.com</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="refreshBtn" class="refresh-btn" title="Refresh Dashboard">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button id="settingsBtn" class="settings-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button id="logoutBtn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <div class="dashboard-layout">
+            <!-- Left Sidebar - Navigation -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h3>Patient Support</h3>
+                </div>
+                
+                <nav class="sidebar-nav">
+                    <div class="nav-item active" data-section="overview">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Overview</span>
+                    </div>
+                    
+                    <div class="nav-item" data-section="patient-search">
+                        <i class="fas fa-search"></i>
+                        <span>Find Patient</span>
+                    </div>
+                    
+                    <div class="nav-item" data-section="active-tickets">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Active Tickets</span>
+                        <div class="notification-badge" id="activeTicketCount">0</div>
+                    </div>
+                    
+                    <div class="nav-item" data-section="resolved-tickets">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Resolved Tickets</span>
+                    </div>
+                    
+                    <div class="nav-item" data-section="patient-issues">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Common Issues</span>
+                    </div>
+                    
+                    <div class="nav-item" data-section="knowledge-base">
+                        <i class="fas fa-book"></i>
+                        <span>Knowledge Base</span>
+                    </div>
+                    
+                    <div class="nav-item" data-section="reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Overview Section -->
+                <div id="overviewSection" class="content-section active">
+                    <div class="section-header">
+                        <h2>Patient Support Overview</h2>
+                        <p>Monitor patient support metrics and recent activities</p>
+                    </div>
+                    
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="totalPatients">0</h3>
+                                <p>Total Patients</p>
+                                <div class="stat-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+5%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="activeTickets">0</h3>
+                                <p>Active Tickets</p>
+                                <div class="stat-trend warning">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="resolvedTickets">0</h3>
+                                <p>Resolved Today</p>
+                                <div class="stat-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+12%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 id="avgResponseTime">2.5h</h3>
+                                <p>Avg Response Time</p>
+                                <div class="stat-trend positive">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span>-15%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Patient Issues -->
+                    <div class="recent-issues">
+                        <div class="section-header">
+                            <h3>Recent Patient Issues</h3>
+                            <button id="refreshIssuesBtn" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="recentIssuesList" class="issues-list">
+                            <!-- Recent issues will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Search Section -->
+                <div id="patientSearchSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Find Patient</h2>
+                        <p>Search for patients by email, ARC ID, or phone number to provide support</p>
+                    </div>
+                    
+                    <div class="search-container">
+                        <div class="search-methods">
+                            <div class="search-tabs">
+                                <button class="search-tab active" data-method="email">
+                                    <i class="fas fa-envelope"></i> Email
+                                </button>
+                                <button class="search-tab" data-method="arcid">
+                                    <i class="fas fa-id-card"></i> ARC ID
+                                </button>
+                                <button class="search-tab" data-method="phone">
+                                    <i class="fas fa-phone"></i> Phone
+                                </button>
+                            </div>
+                            
+                            <div class="search-input-container">
+                                <div class="search-input active" id="emailSearch">
+                                    <div class="input-group">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="emailInput" placeholder="Enter patient email address">
+                                        <button class="btn btn-primary" onclick="searchByEmail()">
+                                            <i class="fas fa-search"></i> Search
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="search-input" id="arcidSearch">
+                                    <div class="input-group">
+                                        <i class="fas fa-id-card"></i>
+                                        <input type="text" id="arcidInput" placeholder="Enter patient ARC ID">
+                                        <button class="btn btn-primary" onclick="searchByArcId()">
+                                            <i class="fas fa-search"></i> Search
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="search-input" id="phoneSearch">
+                                    <div class="input-group">
+                                        <i class="fas fa-phone"></i>
+                                        <input type="tel" id="phoneInput" placeholder="Enter patient phone number">
+                                        <button class="btn btn-primary" onclick="searchByPhone()">
+                                            <i class="fas fa-search"></i> Search
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="searchResults" class="search-results">
+                            <!-- Search results will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Tickets Section -->
+                <div id="activeTicketsSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Active Support Tickets</h2>
+                        <p>Manage and resolve active patient support tickets</p>
+                    </div>
+                    
+                    <div class="tickets-container">
+                        <div class="filters">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="ticketSearch" placeholder="Search tickets...">
+                            </div>
+                            <select id="ticketPriorityFilter" class="filter-select">
+                                <option value="all">All Priorities</option>
+                                <option value="high">High Priority</option>
+                                <option value="medium">Medium Priority</option>
+                                <option value="low">Low Priority</option>
+                            </select>
+                            <select id="ticketStatusFilter" class="filter-select">
+                                <option value="all">All Status</option>
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="waiting">Waiting for Patient</option>
+                            </select>
+                        </div>
+                        
+                        <div id="activeTicketsList" class="tickets-list">
+                            <!-- Active tickets will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resolved Tickets Section -->
+                <div id="resolvedTicketsSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Resolved Support Tickets</h2>
+                        <p>View history of resolved patient support tickets</p>
+                    </div>
+                    
+                    <div class="resolved-tickets-container">
+                        <div class="filters">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="resolvedTicketSearch" placeholder="Search resolved tickets...">
+                            </div>
+                            <select id="resolutionTimeFilter" class="filter-select">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        
+                        <div id="resolvedTicketsList" class="tickets-list">
+                            <!-- Resolved tickets will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Common Issues Section -->
+                <div id="patientIssuesSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Common Patient Issues</h2>
+                        <p>Track and manage frequently reported patient problems</p>
+                    </div>
+                    
+                    <div class="common-issues-container">
+                        <div class="issues-categories">
+                            <div class="category-card">
+                                <div class="category-header">
+                                    <i class="fas fa-user-lock"></i>
+                                    <h3>Account Access</h3>
+                                </div>
+                                <div class="issue-count">15 issues</div>
+                                <button class="btn btn-primary" onclick="viewCategoryIssues('account')">
+                                    View Issues
+                                </button>
+                            </div>
+                            
+                            <div class="category-card">
+                                <div class="category-header">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <h3>App Problems</h3>
+                                </div>
+                                <div class="issue-count">23 issues</div>
+                                <button class="btn btn-primary" onclick="viewCategoryIssues('app')">
+                                    View Issues
+                                </button>
+                            </div>
+                            
+                            <div class="category-card">
+                                <div class="category-header">
+                                    <i class="fas fa-file-medical"></i>
+                                    <h3>Report Issues</h3>
+                                </div>
+                                <div class="issue-count">8 issues</div>
+                                <button class="btn btn-primary" onclick="viewCategoryIssues('reports')">
+                                    View Issues
+                                </button>
+                            </div>
+                            
+                            <div class="category-card">
+                                <div class="category-header">
+                                    <i class="fas fa-credit-card"></i>
+                                    <h3>Payment Issues</h3>
+                                </div>
+                                <div class="issue-count">12 issues</div>
+                                <button class="btn btn-primary" onclick="viewCategoryIssues('payment')">
+                                    View Issues
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="trending-issues">
+                            <h3>Trending Issues</h3>
+                            <div id="trendingIssuesList" class="trending-list">
+                                <!-- Trending issues will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Knowledge Base Section -->
+                <div id="knowledgeBaseSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Knowledge Base</h2>
+                        <p>Access helpful resources and solutions for common patient issues</p>
+                    </div>
+                    
+                    <div class="knowledge-base-container">
+                        <div class="kb-search">
+                            <div class="search-box large">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="kbSearch" placeholder="Search knowledge base articles...">
+                                <button class="btn btn-primary" onclick="searchKnowledgeBase()">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="kb-categories">
+                            <h3>Categories</h3>
+                            <div class="category-grid">
+                                <div class="kb-category" onclick="viewKBCategory('getting-started')">
+                                    <i class="fas fa-rocket"></i>
+                                    <h4>Getting Started</h4>
+                                    <p>New user guide and setup</p>
+                                </div>
+                                
+                                <div class="kb-category" onclick="viewKBCategory('account-management')">
+                                    <i class="fas fa-user-cog"></i>
+                                    <h4>Account Management</h4>
+                                    <p>Profile updates and settings</p>
+                                </div>
+                                
+                                <div class="kb-category" onclick="viewKBCategory('app-features')">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <h4>App Features</h4>
+                                    <p>How to use app features</p>
+                                </div>
+                                
+                                <div class="kb-category" onclick="viewKBCategory('troubleshooting')">
+                                    <i class="fas fa-tools"></i>
+                                    <h4>Troubleshooting</h4>
+                                    <p>Common problems and solutions</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="kbArticles" class="kb-articles">
+                            <!-- Knowledge base articles will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports Section -->
+                <div id="reportsSection" class="content-section">
+                    <div class="section-header">
+                        <h2>Support Reports & Analytics</h2>
+                        <p>Generate reports and analyze patient support metrics</p>
+                    </div>
+                    
+                    <div class="reports-container">
+                        <div class="report-actions">
+                            <button class="btn btn-primary" onclick="generateSupportReport()">
+                                <i class="fas fa-chart-bar"></i> Generate Report
+                            </button>
+                            <button class="btn btn-secondary" onclick="exportSupportData()">
+                                <i class="fas fa-download"></i> Export Data
+                            </button>
+                            <button class="btn btn-info" onclick="viewSupportAnalytics()">
+                                <i class="fas fa-analytics"></i> View Analytics
+                            </button>
+                        </div>
+                        
+                        <div class="report-metrics">
+                            <div class="metric-card">
+                                <h4>Response Time</h4>
+                                <div class="metric-value">2.5 hours</div>
+                                <div class="metric-trend positive">↓ 15% from last month</div>
+                            </div>
+                            
+                            <div class="metric-card">
+                                <h4>Resolution Rate</h4>
+                                <div class="metric-value">94%</div>
+                                <div class="metric-trend positive">↑ 3% from last month</div>
+                            </div>
+                            
+                            <div class="metric-card">
+                                <h4>Customer Satisfaction</h4>
+                                <div class="metric-value">4.7/5</div>
+                                <div class="metric-trend positive">↑ 0.2 from last month</div>
+                            </div>
+                        </div>
+                        
+                        <div id="reportCharts" class="report-charts">
+                            <!-- Charts and graphs will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Patient Supervisor Settings</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4>Notification Preferences</h4>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="ticketNotifications" checked>
+                            New Ticket Notifications
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="urgentTicketNotifications" checked>
+                            Urgent Ticket Alerts
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="patientResponseNotifications" checked>
+                            Patient Response Notifications
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4>Auto-Response Settings</h4>
+                    <div class="form-group">
+                        <label for="autoResponseEnabled">Enable Auto-Responses</label>
+                        <select id="autoResponseEnabled">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="responseDelay">Response Delay (minutes)</label>
+                        <input type="number" id="responseDelay" value="30" min="0" max="1440">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettingsBtn" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <button id="cancelSettingsBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <!-- Scripts -->
+    <script src="patient_supervisor.js"></script>
+</body>
+</html>
