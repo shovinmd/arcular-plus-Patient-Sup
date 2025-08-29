@@ -74,7 +74,7 @@ async function checkAuthStatus() {
                 const staffType = localStorage.getItem('staff_type');
                 if (staffType !== 'patient_supervisor') {
                     console.log('❌ User is not a Patient Supervisor, redirecting...');
-                    window.location.href = '../ARCstaff/index.html';
+                    window.location.href = './index.html';
                     return;
                 }
                 
