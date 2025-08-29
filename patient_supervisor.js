@@ -70,10 +70,28 @@ async function checkAuthStatus() {
             if (user) {
                 console.log('✅ Firebase user authenticated:', user.email);
                 
-                // Get staff type from localStorage
-                const staffType = localStorage.getItem('staff_type');
-                if (staffType !== 'patient_supervisor') {
-                    console.log('❌ User is not a Patient Supervisor, redirecting to staff login...');
+                // Check if user is a Patient Supervisor by verifying with backend
+                try {
+                    const token = await user.getIdToken();
+                    const response = await fetch('https://arcular-plus-backend.onrender.com/staff/api/staff/profile/' + user.uid, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (response.ok) {
+                        const staffProfile = await response.json();
+                        if (staffProfile.staffType !== 'patient_supervisor') {
+                            console.log('❌ User is not a Patient Supervisor, redirecting to staff login...');
+                            window.location.href = 'https://arcular-plus-staffs.vercel.app/';
+                            return;
+                        }
+                        console.log('✅ User verified as Patient Supervisor');
+                    } else {
+                        console.log('❌ Could not verify staff type, redirecting to staff login...');
+                        window.location.href = 'https://arcular-plus-staffs.vercel.app/';
+                        return;
+                    }
+                } catch (error) {
+                    console.error('❌ Error verifying staff type:', error);
                     window.location.href = 'https://arcular-plus-staffs.vercel.app/';
                     return;
                 }
@@ -86,7 +104,7 @@ async function checkAuthStatus() {
                 currentUser = {
                     uid: user.uid,
                     email: user.email,
-                    staffType: staffType
+                    staffType: 'patient_supervisor'
                 };
                 
                 // Update user display
