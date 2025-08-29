@@ -70,28 +70,14 @@ async function checkAuthStatus() {
             if (user) {
                 console.log('✅ Firebase user authenticated:', user.email);
                 
-                // Check if user is a Patient Supervisor by verifying with backend
-                try {
-                    const token = await user.getIdToken();
-                    const response = await fetch('https://arcular-plus-backend.onrender.com/staff/api/staff/profile/' + user.uid, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    
-                    if (response.ok) {
-                        const staffProfile = await response.json();
-                        if (staffProfile.staffType !== 'patient_supervisor') {
-                            console.log('❌ User is not a Patient Supervisor, redirecting to staff login...');
-                            window.location.href = 'https://arcular-plus-staffs.vercel.app/';
-                            return;
-                        }
-                        console.log('✅ User verified as Patient Supervisor');
-                    } else {
-                        console.log('❌ Could not verify staff type, redirecting to staff login...');
-                        window.location.href = 'https://arcular-plus-staffs.vercel.app/';
-                        return;
-                    }
-                } catch (error) {
-                    console.error('❌ Error verifying staff type:', error);
+                // Check if user is a Patient Supervisor by checking localStorage first
+                const storedStaffType = localStorage.getItem('staffType');
+                console.log('🔍 Stored staff type:', storedStaffType);
+                
+                if (storedStaffType === 'patient_supervisor') {
+                    console.log('✅ User verified as Patient Supervisor (from localStorage)');
+                } else {
+                    console.log('❌ User is not a Patient Supervisor, redirecting to staff login...');
                     window.location.href = 'https://arcular-plus-staffs.vercel.app/';
                     return;
                 }
@@ -104,7 +90,7 @@ async function checkAuthStatus() {
                 currentUser = {
                     uid: user.uid,
                     email: user.email,
-                    staffType: 'patient_supervisor'
+                    staffType: storedStaffType
                 };
                 
                 // Update user display
@@ -1184,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     try {
             await firebase.auth().signOut();
             localStorage.removeItem('staff_idToken');
-            localStorage.removeItem('staff_type');
+            localStorage.removeItem('staffType');
             window.location.href = 'https://arcular-plus-staffs.vercel.app/';
         } catch (error) {
             console.error('❌ Error logging out:', error);
