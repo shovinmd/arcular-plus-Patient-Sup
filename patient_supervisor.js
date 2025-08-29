@@ -73,8 +73,8 @@ async function checkAuthStatus() {
                 // Get staff type from localStorage
                 const staffType = localStorage.getItem('staff_type');
                 if (staffType !== 'patient_supervisor') {
-                    console.log('❌ User is not a Patient Supervisor, redirecting...');
-                    window.location.href = './index.html';
+                    console.log('❌ User is not a Patient Supervisor, redirecting to staff login...');
+                    window.location.href = 'https://arcular-plus-staffs.vercel.app/';
                     return;
                 }
                 
@@ -95,7 +95,7 @@ async function checkAuthStatus() {
                 resolve();
             } else {
                 console.log('❌ No user authenticated, redirecting to login...');
-                window.location.href = '../ARCstaff/index.html';
+                window.location.href = 'https://arcular-plus-staffs.vercel.app/';
                 reject(new Error('No user authenticated'));
             }
         });
@@ -1163,15 +1163,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            try {
-                await firebase.auth().signOut();
-                localStorage.removeItem('staff_idToken');
-                localStorage.removeItem('staff_type');
-                window.location.href = '../ARCstaff/index.html';
-            } catch (error) {
-                console.error('❌ Error logging out:', error);
-                showMessage('Error logging out', 'error');
-            }
+                    try {
+            await firebase.auth().signOut();
+            localStorage.removeItem('staff_idToken');
+            localStorage.removeItem('staff_type');
+            window.location.href = 'https://arcular-plus-staffs.vercel.app/';
+        } catch (error) {
+            console.error('❌ Error logging out:', error);
+            showMessage('Error logging out', 'error');
+        }
         });
     }
     
